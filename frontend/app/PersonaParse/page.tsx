@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, FileText, Briefcase, Target, CheckCircle } from "lucide-react"
 
-export default function Round1B() {
+export default function PersonaParse() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [jobRole, setJobRole] = useState("")
   const [jobDescription, setJobDescription] = useState("")
@@ -45,17 +45,36 @@ export default function Round1B() {
 },
 
   ]
+const handleAnalysis = async () => {
+  try {
+    const formData = new FormData()
+    formData.append("jobRole", jobRole)
+    formData.append("jobDescription", jobDescription)
 
-  const handleAnalysis = () => {
-    // Handle the analysis logic here
-    console.log("Starting analysis with:", {
-      uploadMethod,
-      selectedFiles: selectedFiles.length,
-      selectedPdfSet,
-      jobRole,
-      jobDescription,
+    if (uploadMethod === "upload") {
+      selectedFiles.forEach((file) => {
+        formData.append("files", file)
+      })
+    } else if (uploadMethod === "predefined") {
+      formData.append("selectedSet", selectedPdfSet)
+    }
+
+    // Step 1: Upload PDFs + metadata
+    const response = await fetch("http://127.0.0.1:5000/upload", {
+      method: "POST",
+      body: formData,
     })
+
+    const uploadResult = await response.json()
+
+    const processRes = await fetch("http://127.0.0.1:5000/process", {
+      method: "POST",
+    })
+  } catch (error) {
+    console.error("Error uploading:", error)
   }
+}
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
