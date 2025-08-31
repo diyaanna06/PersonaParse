@@ -117,7 +117,7 @@ def get_blocks(pdf_dir, kw):
                     })
     return all_blks
 
-def top_headings(blks, n=5):
+def top_headings(blks, n=10):
     hd_blks = [b for b in blks if b.get("is_heading")]
     hd_blks.sort(key=lambda x: x["score"], reverse=True)
     top = hd_blks[:n]
@@ -128,7 +128,7 @@ def top_headings(blks, n=5):
         "page_number": b["page"]
     } for i, b in enumerate(top)]
 
-def top_subsections(blks, n=5):
+def top_subsections(blks, n=10):
     nh_blks = [b for b in blks if not b.get("is_heading")]
     nh_blks.sort(key=lambda x: x["score"], reverse=True)
     top = nh_blks[:n]
@@ -140,15 +140,9 @@ def top_subsections(blks, n=5):
 
 def save_output(blks, out_path, docs, role, task):
     blks.sort(key=lambda x: x["score"], reverse=True)
-    meta = {
-        "input_documents": docs,
-        "persona": role,
-        "job_to_be_done": task
-    }
     output = {
-        "metadata": meta,
-        "extracted_sections": top_headings(blks, 5),
-        "subsection_analysis": top_subsections(blks, 5)
+        "extracted_sections": top_headings(blks, 10),
+        "subsection_analysis": top_subsections(blks, 10)
     }
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
