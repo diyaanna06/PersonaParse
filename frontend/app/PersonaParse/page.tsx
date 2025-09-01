@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Upload, FileText, Briefcase, Target, CheckCircle, Loader2, Search, Download } from "lucide-react"
+import { Upload, FileText, Briefcase, Target, CheckCircle, Loader2 } from "lucide-react"
 
 export default function PersonaParse() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -17,7 +16,6 @@ export default function PersonaParse() {
   const [jobDescription, setJobDescription] = useState("")
   const [selectedPdfSet, setSelectedPdfSet] = useState("")
   const [uploadMethod, setUploadMethod] = useState("upload")
-
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<any>(null)
@@ -50,15 +48,17 @@ export default function PersonaParse() {
       count: 9,
     },
   ]
-
   const documents = useMemo(() => {
-    if (!results) return []
-    if (Array.isArray(results)) return results
-    if (Array.isArray(results?.documents)) return results.documents
-    if (Array.isArray(results?.results)) return results.results
-    if (Array.isArray(results?.outputs)) return results.outputs
-    return [results]
-  }, [results])
+  if (!results) return []
+  if (Array.isArray(results?.extracted_sections)) return results.extracted_sections
+  return []
+}, [results])
+
+  const documents2 = useMemo(() => {
+  if (!results) return []
+  if (Array.isArray(results?.extracted_sections)) return results.subsection_analysis
+  return []
+}, [results])
 
   const computeCounts = useMemo(() => {
     const docCount = documents.length
@@ -77,24 +77,7 @@ export default function PersonaParse() {
     return { docCount, sectionCount, highlightCount }
   }, [documents])
 
-  const filteredDocuments = useMemo(() => {
-    const q = filter.trim().toLowerCase()
-    if (!q) return documents
-
-    const match = (v?: string) => (v || "").toLowerCase().includes(q)
-
-    return documents.filter((doc: any) => {
-      const title = doc?.title || doc?.name || doc?.filename
-      const sections = Array.isArray(doc?.sections) ? doc.sections : []
-      const docMatch = match(title)
-      const sectionMatch = sections.some((s: any) => {
-        const heading = s?.heading || s?.title
-        const highlights = Array.isArray(s?.highlights) ? s.highlights : Array.isArray(s?.snippets) ? s.snippets : []
-        return match(heading) || highlights.some((h: any) => match(typeof h === "string" ? h : h?.text))
-      })
-      return docMatch || sectionMatch
-    })
-  }, [documents, filter])
+  
 
   const handleAnalysis = useCallback(async () => {
     try {
@@ -185,164 +168,94 @@ export default function PersonaParse() {
       <div className="mt-8">
         <Card className="shadow-lg border-0">
           <CardHeader className="bg-white rounded-t-lg">
-            <CardTitle className="flex items-center justify-between">
-              <span>Extracted Output</span>
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Input
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    placeholder="Filter by heading or text..."
-                    className="pl-9 w-64"
-                    aria-label="Filter output"
-                  />
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-400" />
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleDownloadJson}
-                  disabled={!results}
-                  aria-label="Download JSON"
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  JSON
-                </Button>
-              </div>
-            </CardTitle>
+            <CardTitle>Most relevant sections and content</CardTitle>
             <CardDescription>
-              Review extracted sections and important texts aligned to your role and job-to-be-done.
+             Following are the most relevant section headings and content for the job based on the persona ordered based on their relevance
             </CardDescription>
           </CardHeader>
 
           <CardContent className="p-6">
-            <Tabs defaultValue="overview" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="by-doc">By Document</TabsTrigger>
-                <TabsTrigger value="raw">Raw JSON</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="mt-6">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="rounded-lg border bg-emerald-50 p-4">
-                    <div className="text-sm text-gray-600">Documents</div>
-                    <div className="text-2xl font-semibold text-gray-900">{computeCounts.docCount}</div>
-                  </div>
-                  <div className="rounded-lg border bg-teal-50 p-4">
-                    <div className="text-sm text-gray-600">Sections</div>
-                    <div className="text-2xl font-semibold text-gray-900">{computeCounts.sectionCount}</div>
-                  </div>
-                  <div className="rounded-lg border bg-white p-4">
-                    <div className="text-sm text-gray-600">Highlights</div>
-                    <div className="text-2xl font-semibold text-gray-900">{computeCounts.highlightCount}</div>
-                  </div>
+           
+            <div>
+              <div className="mt-2 grid gap-4 md:grid-cols-2">
+                <div className="rounded-md border bg-white p-3">
+                  <div className="text-xs text-gray-500">Persona</div>
+                  <div className="text-sm text-gray-800">{jobRole || "—"}</div>
                 </div>
-
-                <div className="mt-6">
-                  <h4 className="font-medium text-gray-900">Context</h4>
-                  <div className="mt-2 grid gap-4 md:grid-cols-2">
-                    <div className="rounded-md border bg-white p-3">
-                      <div className="text-xs text-gray-500">Job Role</div>
-                      <div className="text-sm text-gray-800">{jobRole || "—"}</div>
-                    </div>
-                    <div className="rounded-md border bg-white p-3">
-                      <div className="text-xs text-gray-500">Job To Be Done</div>
-                      <div className="text-sm text-gray-800 whitespace-pre-line">{jobDescription || "—"}</div>
-                    </div>
-                  </div>
+                <div className="rounded-md border bg-white p-3">
+                  <div className="text-xs text-gray-500">Job To Be Done</div>
+                  <div className="text-sm text-gray-800 whitespace-pre-line">{jobDescription || "—"}</div>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="by-doc" className="mt-6">
-                {filteredDocuments.length === 0 ? (
-                  <div className="text-gray-600">No documents match your filter.</div>
+              </div>
+            </div>
+            <div className="mt-6">
+                <h4 className="font-medium text-gray-900 mb-2">Sections</h4>
+                {documents.length === 0 ? (
+                  <div className="text-gray-600">No documents available.</div>
                 ) : (
-                  <Accordion type="single" collapsible className="w-full">
-                    {filteredDocuments.map((doc: any, idx: number) => {
-                      const title = doc?.title || doc?.name || doc?.filename || `Document ${idx + 1}`
-                      const sections = Array.isArray(doc?.sections) ? doc.sections : []
+                  <div className="grid gap-4">
+                    {documents.map((section: any, idx: number) => {
                       return (
-                        <AccordionItem value={`doc-${idx}`} key={`doc-${idx}`} className="border-b">
-                          <AccordionTrigger className="text-left">
-                            <div className="flex w-full items-center justify-between pr-4">
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-primary" />
-                                <span className="font-medium text-gray-900">{title}</span>
-                              </div>
-                              <span className="text-xs text-gray-500">{sections.length} sections</span>
+                        <Card key={`sec-${idx}`} className="border shadow-sm">
+                          <CardHeader className="flex flex-row items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4 text-primary" />
+                              <CardTitle className="text-sm font-medium text-gray-900">
+                                {section.section_title}
+                              </CardTitle>
                             </div>
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            {sections.length === 0 ? (
-                              <div className="rounded-md border bg-gray-50 p-3 text-sm text-gray-600">
-                                No sections extracted.
-                              </div>
-                            ) : (
-                              <div className="space-y-4">
-                                {sections
-                                  .slice()
-                                  .sort((a: any, b: any) => (b?.importance ?? 0) - (a?.importance ?? 0))
-                                  .map((section: any, sIdx: number) => {
-                                    const heading = section?.heading || section?.title || `Section ${sIdx + 1}`
-                                    const importance = section?.importance
-                                    const highlights = Array.isArray(section?.highlights)
-                                      ? section.highlights
-                                      : Array.isArray(section?.snippets)
-                                        ? section.snippets
-                                        : []
-                                    return (
-                                      <div key={`sec-${idx}-${sIdx}`} className="rounded-lg border bg-white p-4">
-                                        <div className="flex items-start justify-between gap-4">
-                                          <div>
-                                            <h5 className="text-gray-900 font-medium">{heading}</h5>
-                                            {typeof section?.page === "number" && (
-                                              <div className="text-xs text-gray-500 mt-0.5">Page {section.page}</div>
-                                            )}
-                                          </div>
-                                          {importance !== undefined && (
-                                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
-                                              Importance: {importance}
-                                            </span>
-                                          )}
-                                        </div>
-
-                                        {highlights.length > 0 && (
-                                          <div className="mt-3 space-y-2">
-                                            {highlights.map((h: any, hIdx: number) => {
-                                              const text = typeof h === "string" ? h : (h?.text ?? "")
-                                              return (
-                                                <div
-                                                  key={`hl-${idx}-${sIdx}-${hIdx}`}
-                                                  className="rounded-md border bg-gray-50 p-2 text-sm text-gray-800"
-                                                >
-                                                  {text}
-                                                </div>
-                                              )
-                                            })}
-                                          </div>
-                                        )}
-                                      </div>
-                                    )
-                                  })}
-                              </div>
+                            {section.importance_rank && (
+                              <span className="text-xs text-gray-500">
+                                Importance: {section.importance_rank}
+                              </span>
                             )}
-                          </AccordionContent>
-                        </AccordionItem>
+                          </CardHeader>
+                          <CardContent className="text-sm text-gray-600">
+                            <p>
+                              <strong>Document:</strong> {section.document}
+                            </p>
+                            <p>
+                              <strong>Page:</strong> {section.page_number}
+                            </p>
+                          </CardContent>
+                        </Card>
                       )
                     })}
-                  </Accordion>
+                  </div>
                 )}
-              </TabsContent>
+              </div>
+              {/* subsection analysis */}
+             <div className="mt-6">
+  <h4 className="font-medium text-gray-900 mb-2">Subsections</h4>
+  {documents2.length === 0 ? (
+    <div className="text-gray-600">No subsections available.</div>
+  ) : (
+    <div className="grid gap-4">
+      {documents2.map((sub: any, idx: number) => {
+        return (
+          <Card key={`sub-${idx}`} className="border shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" />
+                <CardTitle className="text-sm font-medium text-gray-900">
+                <strong>Document:</strong>    {sub.document.replace(/\.pdf$/i, "")}
+                  
+                </CardTitle>
+              </div>
+              <span className="text-xs text-gray-500">Page: {sub.page_number}</span>
+            </CardHeader>
+            <CardContent className="text-sm text-gray-600">
+              <p>{sub.refined_text.replace(/^[^a-zA-Z0-9]+/, "")}</p>
+            </CardContent>
+          </Card>
+        )
+      })}
+    </div>
+  )}
+</div>
 
-              <TabsContent value="raw" className="mt-6">
-                <div className="rounded-md border bg-gray-50 p-4">
-                  <pre className="max-h-96 overflow-auto text-xs leading-5 text-gray-800">
-                    {JSON.stringify(results, null, 2)}
-                  </pre>
-                </div>
-              </TabsContent>
-            </Tabs>
+
+
           </CardContent>
         </Card>
       </div>
@@ -357,7 +270,7 @@ export default function PersonaParse() {
           <h1 className="text-4xl font-bold text-gray-900 mb-4">PersonaParse</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Upload multiple PDFs or select from our curated sets to extract the most relevant headings and top
-            subsections from your documents, aligned with the specific job role
+            subsections from your documents, aligned with the specific persona
           </p>
         </div>
 
@@ -374,12 +287,11 @@ export default function PersonaParse() {
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
-              {/* Job Role and Description */}
               <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div className="space-y-2">
                   <Label htmlFor="jobRole" className="text-sm font-medium flex items-center gap-2">
                     <Target className="h-4 w-4 text-primary" />
-                    Job Role
+                    Persona
                   </Label>
                   <Input
                     id="jobRole"
@@ -392,7 +304,7 @@ export default function PersonaParse() {
                 <div className="space-y-2">
                   <Label htmlFor="jobDescription" className="text-sm font-medium flex items-center gap-2">
                     <FileText className="h-4 w-4 text-primary" />
-                    Job Description
+                    Job to be done
                   </Label>
                   <Textarea
                     id="jobDescription"
