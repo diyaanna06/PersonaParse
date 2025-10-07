@@ -2,8 +2,6 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Users, ArrowRight, CheckCircle } from "lucide-react"
-import Head from "next/head"
-
 export default function Home() {
   return (
     <>

@@ -10,6 +10,23 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, FileText, Briefcase, Target, CheckCircle, Loader2 } from "lucide-react"
 
+interface ExtractedSection {
+  section_title: string
+  document: string
+  page_number: number
+  importance_rank?: number
+}
+
+interface SubsectionAnalysis {
+  document: string
+  refined_text: string
+  page_number: number
+}
+
+interface Results {
+  extracted_sections?: ExtractedSection[]
+  subsection_analysis?: SubsectionAnalysis[]
+}
 export default function PersonaParse() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [jobRole, setJobRole] = useState("")
@@ -18,8 +35,7 @@ export default function PersonaParse() {
   const [uploadMethod, setUploadMethod] = useState("upload")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [results, setResults] = useState<any>(null)
-  const [filter, setFilter] = useState("")
+  const [results, setResults] = useState<Results | null>(null)
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
@@ -48,36 +64,17 @@ export default function PersonaParse() {
       count: 9,
     },
   ]
-  const documents = useMemo(() => {
+ const documents = useMemo<ExtractedSection[]>(() => {
   if (!results) return []
-  if (Array.isArray(results?.extracted_sections)) return results.extracted_sections
+  if (Array.isArray(results.extracted_sections)) return results.extracted_sections
   return []
 }, [results])
 
-  const documents2 = useMemo(() => {
+const documents2 = useMemo<SubsectionAnalysis[]>(() => {
   if (!results) return []
-  if (Array.isArray(results?.extracted_sections)) return results.subsection_analysis
+  if (Array.isArray(results.subsection_analysis)) return results.subsection_analysis
   return []
 }, [results])
-
-  const computeCounts = useMemo(() => {
-    const docCount = documents.length
-    let sectionCount = 0
-    let highlightCount = 0
-
-    documents.forEach((doc: any) => {
-      const sections = Array.isArray(doc?.sections) ? doc.sections : []
-      sectionCount += sections.length
-      sections.forEach((s: any) => {
-        const highlights = Array.isArray(s?.highlights) ? s.highlights : Array.isArray(s?.snippets) ? s.snippets : []
-        highlightCount += highlights.length
-      })
-    })
-
-    return { docCount, sectionCount, highlightCount }
-  }, [documents])
-
-  
 
   const handleAnalysis = useCallback(async () => {
     try {
@@ -119,24 +116,18 @@ export default function PersonaParse() {
       const processJson = await processRes.json()
       const normalized = processJson?.results ?? processJson?.documents ?? processJson?.outputs ?? processJson
       setResults(normalized)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error uploading/processing:", err)
-      setError(err?.message ?? "Something went wrong while processing your request.")
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError("Something went wrong")
+      }
     } finally {
       setIsLoading(false)
     }
-  }, [jobRole, jobDescription, uploadMethod, selectedFiles, selectedPdfSet])
 
-  const handleDownloadJson = useCallback(() => {
-    if (!results) return
-    const blob = new Blob([JSON.stringify(results, null, 2)], { type: "application/json" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "persona-parse-results.json"
-    a.click()
-    URL.revokeObjectURL(url)
-  }, [results])
+  }, [jobRole, jobDescription, uploadMethod, selectedFiles, selectedPdfSet])
 
   const ResultsCard = () => {
     if (isLoading) {
@@ -194,7 +185,7 @@ export default function PersonaParse() {
                   <div className="text-gray-600">No documents available.</div>
                 ) : (
                   <div className="grid gap-4">
-                    {documents.map((section: any, idx: number) => {
+                    {documents.map((section: ExtractedSection, idx: number) => {
                       return (
                         <Card key={`sec-${idx}`} className="border shadow-sm">
                           <CardHeader className="flex flex-row items-center justify-between">
@@ -231,7 +222,7 @@ export default function PersonaParse() {
     <div className="text-gray-600">No subsections available.</div>
   ) : (
     <div className="grid gap-4">
-      {documents2.map((sub: any, idx: number) => {
+      {documents2.map((sub: SubsectionAnalysis, idx: number) => {
         return (
           <Card key={`sub-${idx}`} className="border shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between">
