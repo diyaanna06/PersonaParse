@@ -28,20 +28,20 @@ export default function PersonaParse() {
 
   const predefinedSets = [
     {
-      id: "travel planner",
+      id: "Collection1",
       title: "France Travel Documents",
-      description: "Collection of documents covering cities,cuisinne,history,hotels of France",
+      description: "Collection of documents covering cities, cuisine, history, hotels of France",
       count: 7,
     },
     {
-      id: "create_manageable_forms",
+      id: "Collection2",
       title: "Acrobat Forms & PDF Management",
       description:
         "Collection of documents covering creating, editing, exporting, sharing, and managing fillable PDFs and e-signatures",
       count: 15,
     },
     {
-      id: "menu_planning",
+      id: "Collection3",
       title: "Vegetarian Menu Planning",
       description:
         "Collection of documents with breakfast, lunch, and dinner ideas, including mains, sides, and gluten-free options for corporate buffets",

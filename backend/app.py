@@ -1,59 +1,69 @@
-import os,json
+import os,json,fitz,shutil,warnings
 from flask import Flask, request, jsonify
-from flask_cors import CORS   # allow frontend (React) to talk to Flask
-import fitz
+from flask_cors import CORS  
 from sentence_transformers import SentenceTransformer, util
-import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 app = Flask(__name__)
-CORS(app)  # enables cross-origin requests (important for React <-> Flask)
-
-# folder where PDFs will be stored
+CORS(app) 
 input_folder = "input"
 output_folder= "output"
 os.makedirs(input_folder, exist_ok=True)
 os.makedirs(output_folder,exist_ok=True)
-
-
 model = SentenceTransformer("./all-MiniLM-L6-v2")
-@app.route("/upload", methods=["POST"])
-def upload_files():
-    job_role = request.form.get("jobRole")
-    job_description = request.form.get("jobDescription")
-    uploaded_files = request.files.getlist("files")
 
+def clear_in_out_folder():
+    for f in os.listdir(input_folder):
+        os.remove(os.path.join(input_folder, f))
+    for f in os.listdir(output_folder):
+        os.remove(os.path.join(output_folder, f))
+
+def copy_predefined_pdfs(selected_set):
+    predefined_folder = os.path.join("predefined", selected_set)
+    if not os.path.exists(predefined_folder):
+        return None, f"Predefined set '{selected_set}' not found"
     saved_files = []
+    for file_name in os.listdir(predefined_folder):
+        file_path = os.path.join(predefined_folder, file_name)
+        if os.path.isfile(file_path) and file_name.endswith(".pdf"):
+            shutil.copy(file_path, os.path.join(input_folder, file_name))
+            saved_files.append(file_name)
+    return saved_files, None
 
+def save_uploaded_files(uploaded_files):
+    saved_files = []
     for file in uploaded_files:
         if file and file.filename.endswith(".pdf"):
             filepath = os.path.join(input_folder, file.filename)
             file.save(filepath)
             saved_files.append(file.filename)
+    return saved_files
 
-    # Build JSON structure
-    documents = []
-    for fname in saved_files:
-        title = fname.rsplit(".", 1)[0]  # remove ".pdf"
-        documents.append({
-            "filename": fname,
-            "title": title
-        })
-
+def save_input_json(saved_files, job_role, job_description):
+    documents = [{"filename": f, "title": f.rsplit(".", 1)[0]} for f in saved_files]
     json_data = {
         "documents": documents,
-        "persona": {
-            "role": job_role
-        },
-        "job_to_be_done": {
-            "task": job_description
-        }
+        "persona": {"role": job_role},
+        "job_to_be_done": {"task": job_description}
     }
-
-    # Save JSON file into uploads folder
     json_path = os.path.join(input_folder, "input.json")
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(json_data, f, indent=4)
+    return json_path
 
+@app.route("/upload", methods=["POST"])
+def upload_files():
+    job_role = request.form.get("jobRole")
+    job_description = request.form.get("jobDescription")
+    selected_set = request.form.get("selectedSet")  
+    clear_in_out_folder()
+    if selected_set:
+        saved_files, error = copy_predefined_pdfs(selected_set)
+        if error:
+            return jsonify({"error": error}), 404
+    else:
+        uploaded_files = request.files.getlist("files")
+        saved_files = save_uploaded_files(uploaded_files)
+    json_path = save_input_json(saved_files, job_role, job_description)
     return jsonify({
         "status": "success",
         "jobRole": job_role,
@@ -152,22 +162,14 @@ def process_files():
     in_dir = "./input"
     in_json = "./input/input.json"
     out_json = "./output/output.json"
-
-    # load role + task
     role, task = load_input(in_json)
     keywords = role.split() + task.split()
-
-    # process PDFs
     pdfs = sorted([f for f in os.listdir(in_dir) if f.endswith(".pdf")])
     blocks = get_blocks(in_dir, keywords)
     save_output(blocks, out_json, pdfs, role, task)
-
-    # return the output.json contents
     with open(out_json, "r", encoding="utf-8") as f:
         output_data = json.load(f)
-
     return jsonify(output_data)
-
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)

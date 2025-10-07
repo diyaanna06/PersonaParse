@@ -2,9 +2,16 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText, Users, ArrowRight, CheckCircle } from "lucide-react"
+import Head from "next/head"
 
 export default function Home() {
   return (
+    <>
+    
+      <head>
+        <title>PersonaParse</title>
+        <link rel="icon" type="image/png" href="/logo.png" />
+      </head>
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm">
@@ -13,7 +20,7 @@ export default function Home() {
             <div className="flex items-center space-x-2">
               <FileText className="h-8 w-8 text-primary" />
               <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "var(--font-playfair)" }}>
-                PDFPro
+                PersonaParse
               </h1>
             </div>
             <nav className="hidden md:flex items-center space-x-6">
@@ -182,7 +189,7 @@ export default function Home() {
             Ready to Transform Your PDF Workflow?
           </h5>
           <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Join thousands of professionals who trust PDFPro for their document processing needs.
+            Join thousands of professionals who trust PersonParse for their document processing needs.
           </p>
           <Button size="lg" variant="secondary" className="text-lg px-8 py-4">
             Get Started Free Today
@@ -198,7 +205,7 @@ export default function Home() {
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <FileText className="h-6 w-6 text-primary" />
               <span className="text-lg font-bold text-foreground" style={{ fontFamily: "var(--font-playfair)" }}>
-                PDFPro
+                PersonaParse
               </span>
             </div>
             <div className="flex space-x-6 text-sm text-muted-foreground">
@@ -214,10 +221,11 @@ export default function Home() {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            © 2025 PDFPro. All rights reserved.
+            © 2025 PersonaParse. All rights reserved.
           </div>
         </div>
       </footer>
     </div>
+     </>
   )
 }

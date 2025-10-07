@@ -20,10 +20,9 @@ const playfair = Playfair_Display({
 })
 
 export const metadata: Metadata = {
-  title: "PDFPro - Professional PDF Processing Tools",
+  title: "PersonaParse",
   description:
     "Extract, categorize, and analyze PDF content with our advanced processing tools. Perfect for professionals and businesses.",
-  generator: "v0.app",
 }
 
 export default function RootLayout({
