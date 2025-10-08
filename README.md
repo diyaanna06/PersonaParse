@@ -6,23 +6,16 @@ PersonaParse is a role-based PDF content extraction tool that helps users effici
 
 - Extracts persona-specific sections from multiple PDFs
 - Ranks sections by importance using semantic similarity
-
 - Performs subsection-level analysis for fine-grained insights
-
 - Presents the analyzed and structured results with details such as page number, document name, and refined text to the user
-
 - Fully offline operation with no network dependency
 
 ## Key Features
 
 - Persona-based content analysis: Adapts extraction dynamically based on the user’s role and task.
-
 - Importance ranking: Uses semantic similarity to prioritize the most relevant sections.
-
 - Multi-document processing: Efficiently analyzes multiple PDFs or predefined collections in a single run.
-
-- Structured output visualization: Presents analyzed results including document name, page number, and refined text , directly to the user in a clean, organized interface.
-
+- Structured output visualization: Presents analyzed results including document name, page number, and refined text, directly to the user through a clean, organized interface.
 - Offline & CPU-efficient: Fully functional without internet access and optimized to run smoothly on standard hardware.
 
 ## How It Works
@@ -39,7 +32,7 @@ The process consists of the following steps:
 
 4. Relevance Scoring: Computes cosine similarity between the query and text blocks, ranking them by importance and filtering out irrelevant content.
 
-5. Output Generation: Aggregates the top-ranked results into a structured JSON including page numbers, document names, and refined text , which is then rendered on the frontend for seamless user interpretation.
+5. Output Generation: Aggregates the top-ranked results into a structured JSON including page numbers, document names, and refined text, which is then rendered on the frontend for seamless user interpretation.
 
 ## Tech Stack
 
@@ -51,16 +44,23 @@ The process consists of the following steps:
 
 
 ## Getting Started
-GO TO REPO AND ALL
+1. Fork & Clone the Repository:
+   
+ ```bash
+ git clone https://github.com/<your-username>/personaParse.git
+ cd personaParse
+```
+ 2. Frontend Setup
+```bash
 cd frontend
 npm install
-npm run dev      # Start development server
-npm run build    # Build for production
-npm start        # Start production server
-    
-
-Backend
+npm run dev  # Start development server 
+npm run build   
+npm start    # Start production server
+```
+3. Backend Setup
+```bash
 cd backend
 pip install -r requirements.txt
-python app.py    # Start backend server
-
+python app.py  # Start backend server
+```
