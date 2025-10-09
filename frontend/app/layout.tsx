@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   title: "PersonaParse",
   description:
     "Extract, categorize, and analyze PDF content with our advanced processing tools. Perfect for professionals and businesses.",
+    icons: {
+    icon: "/favicon.png", // path relative to /public
+  },
 }
 
 export default function RootLayout({

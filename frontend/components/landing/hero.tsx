@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, ShieldCheck, Zap } from "lucide-react"
+import { ArrowRight} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+
 
 export function Hero() {
   return (

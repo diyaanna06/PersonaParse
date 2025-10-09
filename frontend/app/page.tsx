@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   title: "PersonaParse",
   description:
     "Extract role-specific insights from PDFs with offline, AI-assisted semantic matching. Fast, accurate, and structured for action.",
+    icons: {
+    icon: "/favicon.png", // Path relative to /public
+  },
 }
 
 export default function HomePage() {

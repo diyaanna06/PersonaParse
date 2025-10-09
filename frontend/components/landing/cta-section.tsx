@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowRight, CheckCircle2 } from "lucide-react"
+import { ArrowRight} from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export function CtaSection() {
