@@ -5,7 +5,7 @@ import { CheckCircle2, FileText, Layers, ListOrdered, Users } from "lucide-react
 
 export function Features() {
   return (
-    <section id="features" className="px-4 py-16 bg-background">
+    <section id="features" className="px-4 py-16 ">
       <div className="container mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-balance">
@@ -17,7 +17,7 @@ export function Features() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          <Card className="hover:shadow-sm transition-shadow">
+          <Card className="bg-muted border  border-gray-600  hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -32,7 +32,7 @@ export function Features() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-sm transition-shadow">
+          <Card className="bg-muted border  border-gray-600  hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <ListOrdered className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -47,7 +47,7 @@ export function Features() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-sm transition-shadow">
+          <Card className="bg-muted border  border-gray-600  hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Layers className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -60,7 +60,7 @@ export function Features() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-sm transition-shadow">
+          <Card className="bg-muted border  border-gray-600  hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -73,7 +73,7 @@ export function Features() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-sm transition-shadow">
+          <Card className="bg-muted border  border-gray-600  hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-primary" aria-hidden="true" />
@@ -86,7 +86,7 @@ export function Features() {
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-sm transition-shadow">
+          <Card className="bg-muted border border-gray-600  hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-primary" aria-hidden="true" />
