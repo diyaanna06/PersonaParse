@@ -1,0 +1,7 @@
+flask
+flask-cors
+PyMuPDF
+sentence-transformers
+torch
+transformers
+gunicorn
