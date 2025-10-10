@@ -71,7 +71,7 @@ export default function PersonaParse() {
       } else if (uploadMethod === "predefined") {
         formData.append("selectedSet", selectedPdfSet)
       }
-     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
       const response = await fetch(`${BACKEND_URL}/upload`, {
         method: "POST",
         body: formData,
