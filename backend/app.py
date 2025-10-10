@@ -1,4 +1,4 @@
-import os,json,fitz,shutil,warnings
+import os,json,fitz,shutil,warnings,re,unicodedata
 from flask import Flask, request, jsonify
 from flask_cors import CORS  
 from sentence_transformers import SentenceTransformer, util
@@ -10,6 +10,26 @@ output_folder= "output"
 os.makedirs(input_folder, exist_ok=True)
 os.makedirs(output_folder,exist_ok=True)
 model = SentenceTransformer("./all-MiniLM-L6-v2")
+
+def clean_text(text: str) -> str:
+    if not text:
+        return ""
+    text = unicodedata.normalize("NFKD", text)
+    text = re.sub(r"http\S+|www\S+", "", text)
+    text = re.sub(r"[\u2022•◦▪●]|Page\s*\d+|\d+\s*/\s*\d+", "", text)
+    text = re.sub(r"[\r\n\t]+", " ", text)
+    text = "".join(ch for ch in text if unicodedata.category(ch)[0] != "C")
+    text = re.sub(r"[^a-zA-Z0-9.,;:!?()'\"/\-\s]", "", text)
+    text = re.sub(r"\s+([.,;:!?])", r"\1", text)
+    text = re.sub(r"\s{2,}", " ", text).strip()
+    return text
+
+def build_query(role: str, task: str) -> str:
+    role = role.strip()
+    task = task.strip()
+    query = f"Identify the content in the documents that is most relevant for a {role} to accomplish the task: {task}."
+    return query
+
 
 def clear_in_out_folder():
     for f in os.listdir(input_folder):
@@ -79,13 +99,17 @@ def load_input(input_path):
     task = data.get("job_to_be_done", {}).get("task", "")
     return role, task
 
+
 def get_score(txt, kw):
     if not txt.strip():
         return 0.0
     txt_emb = model.encode(txt, convert_to_tensor=True)
     kw_emb = model.encode(kw, convert_to_tensor=True)
-    scores = util.cos_sim(txt_emb, kw_emb)[0]
-    return float(scores.max().item())
+    semantic_score = float(util.cos_sim(txt_emb, kw_emb)[0].max().item())
+    length_factor = min(len(txt.split()) / 200, 1.0)
+    final_score = 0.7 * semantic_score + 0.3 * length_factor
+    return final_score
+
 
 def is_heading(blk, txt):
     wc = len(txt.split())
@@ -113,11 +137,16 @@ def get_blocks(pdf_dir, kw):
                     for line in blk["lines"]:
                         for span in line["spans"]:
                             txt += span["text"] + " "
-                    txt = txt.strip()
+                    txt = clean_text(txt.strip())
                     if not txt:
+                        continue
+                    txt_len = len(txt)
+                    if txt_len < 15:  
                         continue
                     sc = get_score(txt, kw)
                     hd = is_heading(blk, txt)
+                    if hd:
+                        sc *= 1.1
                     all_blks.append({
                         "text": txt,
                         "page": pno + 1,
@@ -127,8 +156,8 @@ def get_blocks(pdf_dir, kw):
                     })
     return all_blks
 
-def top_headings(blks, n=5):
-    hd_blks = [b for b in blks if b.get("is_heading")]
+def top_headings(blks, n=3, min_score=0.1):
+    hd_blks = [b for b in blks if b.get("is_heading") and b["score"] >= min_score]
     hd_blks.sort(key=lambda x: x["score"], reverse=True)
     top = hd_blks[:n]
     return [{
@@ -138,8 +167,9 @@ def top_headings(blks, n=5):
         "page_number": b["page"]
     } for i, b in enumerate(top)]
 
-def top_subsections(blks, n=5):
-    nh_blks = [b for b in blks if not b.get("is_heading")]
+
+def top_subsections(blks, n=7, min_score=0.1):
+    nh_blks = [b for b in blks if not b.get("is_heading") and b["score"] >= min_score]
     nh_blks.sort(key=lambda x: x["score"], reverse=True)
     top = nh_blks[:n]
     return [{
@@ -151,9 +181,10 @@ def top_subsections(blks, n=5):
 def save_output(blks, out_path, docs, role, task):
     blks.sort(key=lambda x: x["score"], reverse=True)
     output = {
-        "extracted_sections": top_headings(blks, 5),
-        "subsection_analysis": top_subsections(blks, 5)
-    }
+    "extracted_sections": top_headings(blks, 3, min_score=0.1),
+    "subsection_analysis": top_subsections(blks, 7, min_score=0.1)
+}
+
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
 
@@ -163,7 +194,8 @@ def process_files():
     in_json = "./input/input.json"
     out_json = "./output/output.json"
     role, task = load_input(in_json)
-    keywords = role.split() + task.split()
+    query_text = build_query(role, task)
+    keywords = query_text 
     pdfs = sorted([f for f in os.listdir(in_dir) if f.endswith(".pdf")])
     blocks = get_blocks(in_dir, keywords)
     save_output(blocks, out_json, pdfs, role, task)
