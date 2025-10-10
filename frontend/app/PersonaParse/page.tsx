@@ -71,9 +71,8 @@ export default function PersonaParse() {
       } else if (uploadMethod === "predefined") {
         formData.append("selectedSet", selectedPdfSet)
       }
-
-      // Step 1: Upload PDFs + metadata
-      const response = await fetch("http://127.0.0.1:5000/upload", {
+     const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+      const response = await fetch(`${BACKEND_URL}/upload`, {
         method: "POST",
         body: formData,
       })
@@ -81,9 +80,7 @@ export default function PersonaParse() {
       if (!response.ok) {
         throw new Error(`Upload failed: ${response.status} ${response.statusText}`)
       }
-
-      // Step 2: Process and get output
-      const processRes = await fetch("http://127.0.0.1:5000/process", {
+      const processRes = await fetch(`${BACKEND_URL}/process`, {
         method: "POST",
       })
 
