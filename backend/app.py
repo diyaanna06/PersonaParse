@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer, util
 warnings.filterwarnings("ignore", category=FutureWarning)
 app = Flask(__name__)
 frontend_url = os.environ.get("FRONTEND_URL", "*")
-CORS(app, origins=frontend_url)
+CORS(app, origins=[frontend_url])
 input_folder = "input"
 output_folder= "output"
 os.makedirs(input_folder, exist_ok=True)
