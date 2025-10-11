@@ -2,16 +2,15 @@ import os,json,fitz,shutil,warnings,re,unicodedata
 from flask import Flask, request, jsonify
 from flask_cors import CORS  
 from sentence_transformers import SentenceTransformer, util
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 app = Flask(__name__)
 frontend_url = os.environ.get("FRONTEND_URL", "*")
 CORS(app, origins=frontend_url)
-
 input_folder = "input"
 output_folder= "output"
 os.makedirs(input_folder, exist_ok=True)
 os.makedirs(output_folder,exist_ok=True)
-model = SentenceTransformer("./all-MiniLM-L6-v2")
 
 def clean_text(text: str) -> str:
     if not text:
@@ -31,7 +30,6 @@ def build_query(role: str, task: str) -> str:
     task = task.strip()
     query = f"Identify the content in the documents that is most relevant for a {role} to accomplish the task: {task}."
     return query
-
 
 def clear_in_out_folder():
     for f in os.listdir(input_folder):
@@ -101,17 +99,23 @@ def load_input(input_path):
     task = data.get("job_to_be_done", {}).get("task", "")
     return role, task
 
+model = None
+def get_model():
+    global model
+    if model is None:
+        model = SentenceTransformer("./all-MiniLM-L6-v2")
+    return model
 
 def get_score(txt, kw):
     if not txt.strip():
         return 0.0
+    model = get_model()
     txt_emb = model.encode(txt, convert_to_tensor=True)
     kw_emb = model.encode(kw, convert_to_tensor=True)
     semantic_score = float(util.cos_sim(txt_emb, kw_emb)[0].max().item())
     length_factor = min(len(txt.split()) / 200, 1.0)
     final_score = 0.7 * semantic_score + 0.3 * length_factor
     return final_score
-
 
 def is_heading(blk, txt):
     wc = len(txt.split())
@@ -169,7 +173,6 @@ def top_headings(blks, n=3, min_score=0.1):
         "page_number": b["page"]
     } for i, b in enumerate(top)]
 
-
 def top_subsections(blks, n=7, min_score=0.1):
     nh_blks = [b for b in blks if not b.get("is_heading") and b["score"] >= min_score]
     nh_blks.sort(key=lambda x: x["score"], reverse=True)
@@ -184,9 +187,7 @@ def save_output(blks, out_path, docs, role, task):
     blks.sort(key=lambda x: x["score"], reverse=True)
     output = {
     "extracted_sections": top_headings(blks, 3, min_score=0.1),
-    "subsection_analysis": top_subsections(blks, 7, min_score=0.1)
-}
-
+    "subsection_analysis": top_subsections(blks, 7, min_score=0.1)}
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
 
