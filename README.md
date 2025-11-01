@@ -64,3 +64,10 @@ cd backend
 pip install -r requirements.txt
 python app.py  # Start backend server
 ```
+
+## Adobe India Hackathon
+PersonaParse was developed as part of the Adobe India Women-in-Tech Hackathon 2025.
+This repository represents the frontend for Round 1B, focusing on delivering an interactive interface to visualize persona-specific insights extracted from multiple PDFs.
+### Related Repositories 
+- [Round 1A](https://github.com/pavani0959/Adobe_Round1A)
+- [Round 1B](https://github.com/pavani0959/Adobe_Round1B)
