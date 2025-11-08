@@ -10,7 +10,7 @@ PersonaParse is a role-based PDF content extraction tool that helps users effici
 - Presents the analyzed and structured results with details such as page number, document name, and refined text to the user
 - Fully offline operation with no network dependency
 
-## Key Features
+## Key Feature
 
 - Persona-based content analysis: Adapts extraction dynamically based on the user’s role and task.
 - Importance ranking: Uses semantic similarity to prioritize the most relevant sections.
